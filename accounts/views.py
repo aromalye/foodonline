@@ -4,9 +4,12 @@ from . forms import UserForm
 from vendor.forms import VendorForm
 from . models import User, UserProfile
 from django.contrib import messages,auth
-from .utils import detectUser
+from .utils import detectUser, send_verification_email
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+
 
 
 
@@ -54,6 +57,11 @@ def registeruser(request):
             )
             user.role = User.CUSTOMER
             user.save() 
+
+            #send verification mail
+            mail_subject = 'Please activate your account'
+            email_template = 'accounts/emails/account_verification_email.html'
+            send_verification_email(request, user, mail_subject, email_template)
             messages.success(request, 'Congrats, your account created successfully !')
             return redirect('login')
         else:
@@ -88,6 +96,11 @@ def register_restaurant(request):
             vendor.user_profile = user_profile
             vendor.save()
 
+            #send verification mail
+            mail_subject = 'Please activate your account'
+            email_template = 'accounts/emails/account_verification_email.html'
+            send_verification_email(request, user, mail_subject, email_template)
+
             messages.success(request, 'Your request for account registration was sucessfully, Please wait for Approval')
             return redirect('login')
         else:
@@ -102,6 +115,23 @@ def register_restaurant(request):
         'v_form': v_form,
     }
     return render(request, 'accounts/register_restaurant.html', context)
+
+
+def activate(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User._default_manager.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, 'Congratulations, Your account is activated.')
+        return redirect('myaccount')
+    else:
+        messages.error(request, 'Invalid activation link')
+        return redirect('myaccount')
 
 
 def login(request):

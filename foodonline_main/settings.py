@@ -68,6 +68,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.context_processors.get_user_profile',
+                'accounts.context_processors.get_vendor'
             ],
         },
     },
@@ -148,3 +150,11 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
+
+#EMAIL CONFIGURATION
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'aromalyez5@gmail.com'
+EMAIL_HOST_PASSWORD = 'eipadobdvjmuzdfu'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'Food online marketplace <foodonline@gmail.com>'
